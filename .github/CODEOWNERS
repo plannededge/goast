@@ -1,0 +1,32 @@
+# =============================================================================
+# Goast CODEOWNERS
+# =============================================================================
+#
+# This file defines who is responsible for code review in different parts
+# of the repository. The last matching pattern takes precedence.
+#
+# Format: <pattern> <owner1> <owner2> ...
+#
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# =============================================================================
+
+# Default owners for everything in the repo
+* @plannededge
+
+# GitHub configuration
+/.github/ @plannededge
+
+# Documentation
+/README.md @plannededge
+/docs/ @plannededge
+
+# =============================================================================
+# Add more specific ownership rules as the team grows:
+#
+# Example patterns:
+# /src/frontend/ @frontend-team
+# /src/backend/ @backend-team
+# /src/ai/ @ai-team
+# /prisma/ @database-team
+# *.ts @typescript-reviewers
+# =============================================================================

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: General Discussion
+    url: https://github.com/plannededge/goast/discussions
+    about: Use discussions for questions, ideas, and general conversation
+  - name: Security Vulnerability
+    url: mailto:security@plannededge.com
+    about: Please report security vulnerabilities privately via email
