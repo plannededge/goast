@@ -231,3 +231,11 @@
 - name: "invalid"
   color: "E4E669"
   description: "Not valid/applicable"
+
+# -----------------------------------------------------------------------------
+# MODERATION: AI processing workflow
+# Color: Orange (#FF9500)
+# -----------------------------------------------------------------------------
+- name: "pending-review"
+  color: "FF9500"
+  description: "Awaiting moderator approval after AI processing"

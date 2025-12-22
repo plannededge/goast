@@ -1,0 +1,74 @@
+name: Feedback
+description: Share general feedback, suggestions, or observations
+title: "[Feedback]: "
+labels: ["type:enhancement", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your feedback! Your input helps shape the future of Goast.
+
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback Type
+      description: What kind of feedback are you sharing?
+      options:
+        - "Suggestion - An idea for improvement"
+        - "Observation - Something you noticed"
+        - "Praise - Something you love"
+        - "Concern - Something that worries you"
+        - "Question - Something you want to understand"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your Feedback
+      description: Share your thoughts in as much detail as you like.
+      placeholder: Tell us what's on your mind...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Related Area
+      description: Which part of Goast does this relate to?
+      multiple: true
+      options:
+        - "Core - Chat/messaging"
+        - "Governance - Voting/democracy"
+        - "Identity - Avatars/usernames/badges"
+        - "Economy - Token system"
+        - "Dissolution - Goast lifecycle"
+        - "AI Polish - Message polishing"
+        - "Frontend - UI/UX"
+        - "Backend - API/Server"
+        - "Mobile/PWA"
+        - "General/Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: importance
+    attributes:
+      label: How Important Is This?
+      description: Help us understand priority from your perspective.
+      options:
+        - "Critical - This really matters to me"
+        - "High - I think about this often"
+        - "Medium - Worth considering"
+        - "Low - Just a thought"
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other details, screenshots, or examples.
+      placeholder: Add any additional context here...
+    validations:
+      required: false

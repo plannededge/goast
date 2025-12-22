@@ -1,0 +1,58 @@
+name: AI Issue Approved
+
+on:
+  issues:
+    types: [unlabeled]
+
+permissions:
+  issues: write
+
+jobs:
+  approve-issue:
+    runs-on: ubuntu-latest
+
+    # Only run when pending-review label is removed
+    if: github.event.label.name == 'pending-review'
+
+    steps:
+      - name: Clean up AI processing notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Get current issue body
+          CURRENT_BODY=$(gh issue view "$ISSUE_NUMBER" --json body -q '.body')
+
+          # Remove the AI Processing Notes section
+          # This removes everything from the "---" before the details tag to "</details>"
+          CLEAN_BODY=$(echo "$CURRENT_BODY" | awk '
+            BEGIN { skip = 0 }
+            /^---$/ && !found_details {
+              # Look ahead for details tag
+              getline next_line
+              if (next_line ~ /<details>/) {
+                skip = 1
+                found_details = 1
+                next
+              } else {
+                print "---"
+                print next_line
+                next
+              }
+            }
+            /<\/details>/ && skip { skip = 0; next }
+            !skip { print }
+          ')
+
+          # If the awk approach fails, try a simpler approach
+          if [ -z "$CLEAN_BODY" ]; then
+            # Simple approach: remove from last "---" to end if it contains "AI Processing Notes"
+            CLEAN_BODY=$(echo "$CURRENT_BODY" | sed '/^---$/,/<\/details>$/d')
+          fi
+
+          # Save to file and update issue
+          echo "$CLEAN_BODY" > /tmp/clean_body.md
+          gh issue edit "$ISSUE_NUMBER" --body-file /tmp/clean_body.md
+
+          # Add a comment confirming approval
+          gh issue comment "$ISSUE_NUMBER" --body "This issue has been reviewed and approved by a moderator. It is now part of the Goast public roadmap."

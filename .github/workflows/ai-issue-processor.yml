@@ -1,0 +1,334 @@
+name: AI Issue Processor
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  process-issue:
+    runs-on: ubuntu-latest
+
+    # Only process issues from our templates (have type labels)
+    if: |
+      contains(github.event.issue.labels.*.name, 'type:bug') ||
+      contains(github.event.issue.labels.*.name, 'type:feature') ||
+      contains(github.event.issue.labels.*.name, 'type:enhancement')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine template type
+        id: template
+        run: |
+          if [[ "${{ contains(github.event.issue.labels.*.name, 'type:bug') }}" == "true" ]]; then
+            echo "type=bug" >> $GITHUB_OUTPUT
+            echo "template=.github/ISSUE_TEMPLATE/bug_report.yml" >> $GITHUB_OUTPUT
+          elif [[ "${{ contains(github.event.issue.labels.*.name, 'type:feature') }}" == "true" ]]; then
+            echo "type=feature" >> $GITHUB_OUTPUT
+            echo "template=.github/ISSUE_TEMPLATE/feature_request.yml" >> $GITHUB_OUTPUT
+          else
+            echo "type=feedback" >> $GITHUB_OUTPUT
+            echo "template=.github/ISSUE_TEMPLATE/feedback.yml" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Parse issue form
+        id: parser
+        uses: issue-ops/parser@v4
+        with:
+          body: ${{ github.event.issue.body }}
+          issue-form-template: ${{ steps.template.outputs.template }}
+
+      - name: Prepare API request
+        id: prepare
+        run: |
+          # Save issue data to files to handle special characters safely
+          echo '${{ github.event.issue.title }}' > /tmp/issue_title.txt
+          echo '${{ github.event.issue.body }}' > /tmp/issue_body.txt
+          echo '${{ steps.parser.outputs.json }}' > /tmp/parsed_data.json
+          echo '${{ steps.template.outputs.type }}' > /tmp/template_type.txt
+
+      - name: Call Gemini API
+        id: gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # Read data from files
+          ISSUE_TITLE=$(cat /tmp/issue_title.txt)
+          ISSUE_BODY=$(cat /tmp/issue_body.txt)
+          PARSED_JSON=$(cat /tmp/parsed_data.json)
+          TEMPLATE_TYPE=$(cat /tmp/template_type.txt)
+
+          # Build the request payload
+          cat > /tmp/gemini_request.json << 'PAYLOAD_EOF'
+          {
+            "contents": [
+              {
+                "role": "user",
+                "parts": [
+                  {
+                    "text": "SYSTEM_PROMPT_PLACEHOLDER"
+                  }
+                ]
+              }
+            ],
+            "generationConfig": {
+              "responseMimeType": "application/json",
+              "responseSchema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Rewritten issue title in British English, plain language"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "Rewritten issue body in British English, plain language, using Markdown formatting"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Array of label names from the allowed taxonomy"
+                  },
+                  "label_reasoning": {
+                    "type": "string",
+                    "description": "Brief explanation of why each label was chosen"
+                  },
+                  "confidence": {
+                    "type": "object",
+                    "properties": {
+                      "overall": { "type": "number" },
+                      "labels": { "type": "number" },
+                      "rewrite": { "type": "number" }
+                    },
+                    "required": ["overall", "labels", "rewrite"]
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Any concerns or flags for moderator attention"
+                  }
+                },
+                "required": ["title", "body", "labels", "label_reasoning", "confidence", "flags"]
+              }
+            }
+          }
+          PAYLOAD_EOF
+
+          # Create the full prompt
+          FULL_PROMPT=$(cat << 'PROMPT_EOF'
+          You are an expert technical writer for Goast, an ephemeral social messaging platform. Your task is to rewrite GitHub issues in consistent British English using plain, accessible language.
+
+          ## Goast Context
+          - **Goast**: A temporary group chat that dissolves when inactive
+          - **The Polisher**: AI layer that smooths message tone whilst preserving intent
+          - **Vibe Check**: Automated sentiment monitoring that triggers dissolution
+          - **The Historian**: Generates vague summaries and badges when a Goast ends
+          - **Token Economy**: Friction system where negativity costs tokens, kindness is free
+          - **Democratic Governance**: All major decisions require group votes
+
+          ## Technical Context
+          - Built with Next.js 15 (App Router), TypeScript, PostgreSQL + Prisma, WebSocket
+          - Spectral Design System for styling (Tailwind CSS)
+          - Three release phases: Alpha (Q1 2026), Beta (Q2 2026), V1 (Q3 2026)
+
+          ## Writing Guidelines
+          1. Use British English spelling throughout:
+             - colour (not color), behaviour (not behavior), organise (not organize)
+             - centre (not center), labelled (not labeled), travelling (not traveling)
+
+          2. Use plain language:
+             - Avoid jargon where possible
+             - Explain technical terms if they must be used
+             - Use active voice
+             - Keep sentences concise
+
+          3. Preserve technical accuracy:
+             - Keep all reproduction steps exactly as provided
+             - Maintain code snippets unchanged
+             - Preserve error messages verbatim
+             - Keep version numbers and technical specifications
+
+          4. Structure for clarity:
+             - Use clear headings (## for sections)
+             - Use bullet points for lists
+             - Use numbered lists for sequential steps
+             - Use code blocks for technical content
+
+          5. Tone: Professional yet approachable, neutral and objective, no marketing language or hyperbole
+
+          ## Label Selection Guidelines
+          Available labels (use ONLY these exact values):
+
+          TYPE: type:bug, type:feature, type:enhancement, type:docs, type:chore, type:security, type:research
+          PRIORITY: priority:critical, priority:high, priority:medium, priority:low
+          STATUS: status:triage (default)
+          AREA: area:frontend, area:backend, area:ai, area:infra, area:mobile, area:database, area:realtime
+          EFFORT: effort:xs, effort:s, effort:m, effort:l, effort:xl
+          BUG SEVERITY: bug:critical, bug:major, bug:minor, bug:cosmetic, bug:regression
+          FEATURE CATEGORY: feature:core, feature:governance, feature:identity, feature:economy, feature:dissolution, feature:ai-polish
+          RELEASE: release:alpha, release:beta, release:v1
+          STANDALONE: good-first-issue, help-wanted
+
+          Rules:
+          - Always include exactly ONE type: label
+          - Include relevant area: labels (can be multiple)
+          - For bugs, include ONE bug: severity label
+          - For features, include ONE feature: category label
+          - Estimate effort: if enough information is provided
+          - Only assign priority: if clearly urgent/critical
+          - Add good-first-issue if the task seems straightforward
+          - Add help-wanted if community contribution would be valuable
+
+          ## Confidence Scoring
+          - 0.9-1.0: Very confident, clear requirements, obvious labels
+          - 0.7-0.89: Confident, minor ambiguities
+          - 0.5-0.69: Moderate confidence, some assumptions made
+          - Below 0.5: Low confidence, flag for careful review
+
+          ## Flags to Consider
+          unclear_requirements, potential_duplicate, needs_more_info, sensitive_content, complex_issue, cross_cutting_concern, scope_creep_risk
+
+          ---
+
+          PROMPT_EOF
+          )
+
+          # Append the user prompt with issue data
+          USER_DATA="
+          Now process this issue:
+
+          Template Type: ${TEMPLATE_TYPE}
+          Original Title: ${ISSUE_TITLE}
+
+          Parsed Form Data:
+          ${PARSED_JSON}
+
+          Original Issue Body:
+          ${ISSUE_BODY}
+          "
+
+          # Combine prompts and escape for JSON
+          COMBINED_PROMPT="${FULL_PROMPT}${USER_DATA}"
+
+          # Use jq to properly escape the prompt and insert it
+          ESCAPED_PROMPT=$(echo "$COMBINED_PROMPT" | jq -Rs .)
+
+          # Update the request with the actual prompt
+          jq --argjson prompt "$ESCAPED_PROMPT" \
+            '.contents[0].parts[0].text = ($prompt | fromjson)' \
+            /tmp/gemini_request.json > /tmp/gemini_request_final.json
+
+          # Make API request
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/gemini_response.json \
+            -X POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent" \
+            -H "Content-Type: application/json" \
+            -H "x-goog-api-key: ${GEMINI_API_KEY}" \
+            -d @/tmp/gemini_request_final.json)
+
+          echo "API Response Code: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=API returned status $HTTP_CODE" >> $GITHUB_OUTPUT
+            cat /tmp/gemini_response.json
+            exit 0
+          fi
+
+          # Extract the generated content
+          GENERATED=$(jq -r '.candidates[0].content.parts[0].text // empty' /tmp/gemini_response.json)
+
+          if [ -z "$GENERATED" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Failed to extract response from Gemini API" >> $GITHUB_OUTPUT
+            cat /tmp/gemini_response.json
+            exit 0
+          fi
+
+          # Validate it's valid JSON
+          if ! echo "$GENERATED" | jq . > /dev/null 2>&1; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini returned invalid JSON" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Save for next step
+          echo "$GENERATED" > /tmp/ai_result.json
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: Update issue on success
+        if: steps.gemini.outputs.success == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Read the AI response
+          RESPONSE=$(cat /tmp/ai_result.json)
+
+          # Extract fields
+          NEW_TITLE=$(echo "$RESPONSE" | jq -r '.title')
+          NEW_BODY=$(echo "$RESPONSE" | jq -r '.body')
+          LABELS=$(echo "$RESPONSE" | jq -r '.labels | join(",")')
+          REASONING=$(echo "$RESPONSE" | jq -r '.label_reasoning')
+          CONFIDENCE=$(echo "$RESPONSE" | jq -r '.confidence.overall')
+          LABEL_CONFIDENCE=$(echo "$RESPONSE" | jq -r '.confidence.labels')
+          REWRITE_CONFIDENCE=$(echo "$RESPONSE" | jq -r '.confidence.rewrite')
+          FLAGS=$(echo "$RESPONSE" | jq -r 'if .flags | length > 0 then .flags | join(", ") else "None" end')
+
+          # Create the updated body with AI processing note
+          cat > /tmp/updated_body.md << EOF
+          ${NEW_BODY}
+
+          ---
+
+          <details>
+          <summary>AI Processing Notes (Moderator View)</summary>
+
+          **Confidence Scores:**
+          - Overall: ${CONFIDENCE}
+          - Labels: ${LABEL_CONFIDENCE}
+          - Rewrite: ${REWRITE_CONFIDENCE}
+
+          **Label Reasoning:**
+          ${REASONING}
+
+          **Flags:** ${FLAGS}
+
+          ---
+          *This issue was processed by Goast AI (Gemini 2.5) and is awaiting moderator approval.*
+          </details>
+          EOF
+
+          # Update the issue title and body
+          gh issue edit "$ISSUE_NUMBER" \
+            --title "$NEW_TITLE" \
+            --body-file /tmp/updated_body.md
+
+          # Add the pending-review label and AI-suggested labels
+          gh issue edit "$ISSUE_NUMBER" \
+            --add-label "pending-review"
+
+          # Add each AI-suggested label individually (some may already exist)
+          for label in $(echo "$LABELS" | tr ',' '\n'); do
+            gh issue edit "$ISSUE_NUMBER" --add-label "$label" 2>/dev/null || true
+          done
+
+          # Add a comment explaining the AI processing
+          gh issue comment "$ISSUE_NUMBER" --body "This issue has been processed by our AI assistant and is awaiting moderator review. A team member will review and approve it shortly."
+
+      - name: Handle API failure
+        if: steps.gemini.outputs.error == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Add pending-review label for manual processing
+          gh issue edit "$ISSUE_NUMBER" --add-label "pending-review"
+
+          # Add comment explaining the situation
+          gh issue comment "$ISSUE_NUMBER" --body "Our AI assistant was unable to process this issue automatically. A moderator will review it manually. (Error: ${{ steps.gemini.outputs.error_message }})"
