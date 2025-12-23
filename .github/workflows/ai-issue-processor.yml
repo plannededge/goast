@@ -63,40 +63,119 @@ jobs:
           PARSED_JSON=$(cat /tmp/parsed_data.json)
           TEMPLATE_TYPE=$(cat /tmp/template_type.txt)
 
-          # Build the request payload
-          cat > /tmp/gemini_request.json << 'PAYLOAD_EOF'
-          {
-            "contents": [
+          # Build the response schema for the current issue type
+          case "$TEMPLATE_TYPE" in
+            bug)
+              cat > /tmp/response_schema.json << 'SCHEMA_EOF'
               {
-                "role": "user",
-                "parts": [
-                  {
-                    "text": "SYSTEM_PROMPT_PLACEHOLDER"
-                  }
-                ]
-              }
-            ],
-            "generationConfig": {
-              "responseMimeType": "application/json",
-              "responseSchema": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
+                  "issue_type": {
+                    "type": "string",
+                    "enum": ["bug"],
+                    "description": "Issue type identifier",
+                    "examples": ["bug"]
+                  },
                   "title": {
                     "type": "string",
-                    "description": "Rewritten issue title in British English, plain language"
+                    "description": "Clear, concise issue title in UK English, starting with a verb",
+                    "examples": ["[Bug]: Fix Goast dissolving after two minutes despite new messages"]
                   },
-                  "body": {
-                    "type": "string",
-                    "description": "Rewritten issue body in British English, plain language, using Markdown formatting"
+                  "issue": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "summary": {
+                        "type": "string",
+                        "description": "Plain-English summary of the bug",
+                        "examples": ["The Goast ends after two minutes even when new messages are still being sent."]
+                      },
+                      "steps_to_reproduce": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Ordered list of steps to reproduce the bug",
+                        "examples": [["Open a Goast with three members", "Send a message every 30 seconds for three minutes", "Observe the Goast dissolves anyway"]]
+                      },
+                      "expected_behaviour": {
+                        "type": "string",
+                        "description": "What should have happened",
+                        "examples": ["The Goast should remain active while messages are still being sent."]
+                      },
+                      "actual_behaviour": {
+                        "type": "string",
+                        "description": "What actually happened",
+                        "examples": ["The Goast dissolves after two minutes despite ongoing messages."]
+                      },
+                      "severity": {
+                        "type": "string",
+                        "enum": [
+                          "Cosmetic - Visual/UI defect only",
+                          "Minor - Non-critical malfunction",
+                          "Major - Core feature broken",
+                          "Critical - System down or data loss risk",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Severity as selected in the issue form",
+                        "examples": ["Major - Core feature broken"]
+                      },
+                      "affected_areas": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "Frontend - UI/UX",
+                            "Backend - API/Server",
+                            "AI - Polisher/Vibe Check",
+                            "Database",
+                            "Realtime - WebSocket",
+                            "Mobile/PWA",
+                            "Infrastructure",
+                            "Other/Unknown"
+                          ]
+                        },
+                        "description": "Affected areas as selected in the issue form",
+                        "examples": [["Realtime - WebSocket", "Frontend - UI/UX"]]
+                      },
+                      "environment": {
+                        "type": "string",
+                        "description": "Environment details, or 'Not provided' if missing",
+                        "examples": ["Browser: Chrome 120\nOS: macOS 14\nDevice: Desktop"]
+                      },
+                      "evidence": {
+                        "type": "string",
+                        "description": "Screenshots or logs, or 'Not provided' if missing",
+                        "examples": ["Console error: \"socket closed\""]
+                      },
+                      "additional_context": {
+                        "type": "string",
+                        "description": "Any extra context, or 'Not provided' if missing",
+                        "examples": ["Happens in the alpha build on staging."]
+                      }
+                    },
+                    "required": [
+                      "summary",
+                      "steps_to_reproduce",
+                      "expected_behaviour",
+                      "actual_behaviour",
+                      "severity",
+                      "affected_areas",
+                      "environment",
+                      "evidence",
+                      "additional_context"
+                    ]
                   },
                   "labels": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "Array of label names from the allowed taxonomy"
+                    "description": "Array of label names from the allowed taxonomy",
+                    "examples": [["type:bug", "area:realtime", "bug:major", "status:triage"]]
                   },
                   "label_reasoning": {
                     "type": "string",
-                    "description": "Brief explanation of why each label was chosen"
+                    "description": "Brief explanation of why each label was chosen",
+                    "examples": ["type:bug because behaviour is broken; area:realtime due to socket errors; bug:major as core chat lifecycle is affected."]
                   },
                   "confidence": {
                     "type": "object",
@@ -105,39 +184,322 @@ jobs:
                       "labels": { "type": "number" },
                       "rewrite": { "type": "number" }
                     },
-                    "required": ["overall", "labels", "rewrite"]
+                    "required": ["overall", "labels", "rewrite"],
+                    "examples": [{"overall": 0.82, "labels": 0.78, "rewrite": 0.86}]
                   },
                   "flags": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "Any concerns or flags for moderator attention"
+                    "description": "Any concerns or flags for moderator attention",
+                    "examples": [["needs_more_info"]]
                   }
                 },
-                "required": ["title", "body", "labels", "label_reasoning", "confidence", "flags"]
+                "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
               }
+              SCHEMA_EOF
+              ;;
+            feature)
+              cat > /tmp/response_schema.json << 'SCHEMA_EOF'
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "issue_type": {
+                    "type": "string",
+                    "enum": ["feature"],
+                    "description": "Issue type identifier",
+                    "examples": ["feature"]
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Clear, concise feature title in UK English, starting with a verb",
+                    "examples": ["[Feature]: Add quiet hours for Goast notifications"]
+                  },
+                  "issue": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "problem_statement": {
+                        "type": "string",
+                        "description": "Plain-English problem statement",
+                        "examples": ["I get notifications late at night and it is hard to sleep."]
+                      },
+                      "proposed_solution": {
+                        "type": "string",
+                        "description": "Plain-English description of the desired solution",
+                        "examples": ["Add a quiet hours setting so notifications pause between chosen times."]
+                      },
+                      "alternatives_considered": {
+                        "type": "string",
+                        "description": "Any alternatives mentioned, or 'Not provided' if missing",
+                        "examples": ["Turning on phone-wide do not disturb, but that mutes everything."]
+                      },
+                      "category": {
+                        "type": "string",
+                        "enum": [
+                          "Core - Chat/messaging mechanics",
+                          "Governance - Voting/democracy features",
+                          "Identity - Avatars/usernames/badges",
+                          "Economy - Token system",
+                          "Dissolution - Goast lifecycle/fading",
+                          "AI Polish - Message polishing",
+                          "Other",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Feature category as selected in the issue form",
+                        "examples": ["Core - Chat/messaging mechanics"]
+                      },
+                      "target_release": {
+                        "type": "string",
+                        "enum": [
+                          "Alpha - Q1 2026",
+                          "Beta - Q2 2026",
+                          "V1 Launch - Q3 2026",
+                          "Post-launch / Future",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Target release as selected in the issue form",
+                        "examples": ["Beta - Q2 2026"]
+                      },
+                      "estimated_effort": {
+                        "type": "string",
+                        "enum": [
+                          "XS - Quick win (< 1 hour)",
+                          "S - Small (1-4 hours)",
+                          "M - Medium (1-2 days)",
+                          "L - Large (3-5 days)",
+                          "XL - Extra large (> 1 week)",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Estimated effort as selected in the issue form",
+                        "examples": ["M - Medium (1-2 days)"]
+                      },
+                      "additional_context": {
+                        "type": "string",
+                        "description": "Any extra context, or 'Not provided' if missing",
+                        "examples": ["Mockups attached showing the settings screen."]
+                      },
+                      "contribution_interest": {
+                        "type": "boolean",
+                        "description": "True if the reporter wants to help implement the feature",
+                        "examples": [true]
+                      }
+                    },
+                    "required": [
+                      "problem_statement",
+                      "proposed_solution",
+                      "alternatives_considered",
+                      "category",
+                      "target_release",
+                      "estimated_effort",
+                      "additional_context",
+                      "contribution_interest"
+                    ]
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Array of label names from the allowed taxonomy",
+                    "examples": [["type:feature", "feature:core", "status:triage"]]
+                  },
+                  "label_reasoning": {
+                    "type": "string",
+                    "description": "Brief explanation of why each label was chosen",
+                    "examples": ["type:feature because a new capability is requested; feature:core as it affects chat settings."]
+                  },
+                  "confidence": {
+                    "type": "object",
+                    "properties": {
+                      "overall": { "type": "number" },
+                      "labels": { "type": "number" },
+                      "rewrite": { "type": "number" }
+                    },
+                    "required": ["overall", "labels", "rewrite"],
+                    "examples": [{"overall": 0.76, "labels": 0.7, "rewrite": 0.8}]
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Any concerns or flags for moderator attention",
+                    "examples": [["scope_creep_risk"]]
+                  }
+                },
+                "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+              }
+              SCHEMA_EOF
+              ;;
+            feedback)
+              cat > /tmp/response_schema.json << 'SCHEMA_EOF'
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "issue_type": {
+                    "type": "string",
+                    "enum": ["feedback"],
+                    "description": "Issue type identifier",
+                    "examples": ["feedback"]
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Clear, concise feedback title in UK English, starting with a verb",
+                    "examples": ["[Feedback]: Improve clarity of token costs for blunt messages"]
+                  },
+                  "issue": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "feedback_type": {
+                        "type": "string",
+                        "enum": [
+                          "Suggestion - An idea for improvement",
+                          "Observation - Something you noticed",
+                          "Praise - Something you love",
+                          "Concern - Something that worries you",
+                          "Question - Something you want to understand",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Feedback type as selected in the issue form",
+                        "examples": ["Concern - Something that worries you"]
+                      },
+                      "feedback": {
+                        "type": "string",
+                        "description": "Plain-English feedback content",
+                        "examples": ["I worry that the token cost might discourage honest conversations."]
+                      },
+                      "related_area": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "Core - Chat/messaging",
+                            "Governance - Voting/democracy",
+                            "Identity - Avatars/usernames/badges",
+                            "Economy - Token system",
+                            "Dissolution - Goast lifecycle",
+                            "AI Polish - Message polishing",
+                            "Frontend - UI/UX",
+                            "Backend - API/Server",
+                            "Mobile/PWA",
+                            "General/Other"
+                          ]
+                        },
+                        "description": "Related areas as selected in the issue form",
+                        "examples": [["Economy - Token system", "AI Polish - Message polishing"]]
+                      },
+                      "importance": {
+                        "type": "string",
+                        "enum": [
+                          "Critical - This really matters to me",
+                          "High - I think about this often",
+                          "Medium - Worth considering",
+                          "Low - Just a thought",
+                          "Not sure",
+                          "Not provided"
+                        ],
+                        "description": "Importance as selected in the issue form, or 'Not provided' if missing",
+                        "examples": ["High - I think about this often"]
+                      },
+                      "additional_context": {
+                        "type": "string",
+                        "description": "Any extra context, or 'Not provided' if missing",
+                        "examples": ["This came up in a group with new users."]
+                      }
+                    },
+                    "required": ["feedback_type", "feedback", "related_area", "importance", "additional_context"]
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Array of label names from the allowed taxonomy",
+                    "examples": [["type:enhancement", "area:ai", "status:triage"]]
+                  },
+                  "label_reasoning": {
+                    "type": "string",
+                    "description": "Brief explanation of why each label was chosen",
+                    "examples": ["type:enhancement because it is feedback on improving behaviour; area:ai due to polishing impact."]
+                  },
+                  "confidence": {
+                    "type": "object",
+                    "properties": {
+                      "overall": { "type": "number" },
+                      "labels": { "type": "number" },
+                      "rewrite": { "type": "number" }
+                    },
+                    "required": ["overall", "labels", "rewrite"],
+                    "examples": [{"overall": 0.72, "labels": 0.68, "rewrite": 0.78}]
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Any concerns or flags for moderator attention",
+                    "examples": [[]]
+                  }
+                },
+                "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+              }
+              SCHEMA_EOF
+              ;;
+            *)
+              echo "error=true" >> $GITHUB_OUTPUT
+              echo "error_message=Unknown template type: $TEMPLATE_TYPE" >> $GITHUB_OUTPUT
+              exit 0
+              ;;
+          esac
+
+          # Build the request payload
+          cat > /tmp/gemini_request.json << 'PAYLOAD_EOF'
+          {
+            "systemInstruction": {
+              "role": "system",
+              "parts": [
+                {
+                  "text": ""
+                }
+              ]
+            },
+            "contents": [
+              {
+                "role": "user",
+                "parts": [
+                  {
+                    "text": ""
+                  }
+                ]
+              }
+            ],
+            "generationConfig": {
+              "responseMimeType": "application/json",
+              "responseSchema": {}
             }
           }
           PAYLOAD_EOF
 
-          # Create the full prompt
-          FULL_PROMPT=$(cat << 'PROMPT_EOF'
-          You are an expert technical writer for Goast, an ephemeral social messaging platform. Your task is to rewrite GitHub issues in consistent British English using plain, accessible language.
+          # Create the system prompt
+          SYSTEM_PROMPT=$(cat << 'PROMPT_EOF'
+          You are the lead product manager for Goast. Use your product, UI/UX, and technical knowledge to interpret issues with nuance and clarity.
+          Your output must strictly follow the provided JSON schema for the specific issue type, with no extra keys or free-form sections.
+          Write in UK English, using plain, straightforward language that non-technical users can understand. Keep it calm, clear, and lightly conversational.
 
           ## Goast Context
-          - **Goast**: A temporary group chat that dissolves when inactive
-          - **The Polisher**: AI layer that smooths message tone whilst preserving intent
-          - **Vibe Check**: Automated sentiment monitoring that triggers dissolution
-          - **The Historian**: Generates vague summaries and badges when a Goast ends
-          - **Token Economy**: Friction system where negativity costs tokens, kindness is free
-          - **Democratic Governance**: All major decisions require group votes
+          - Goast is a temporary group chat that dissolves when inactive.
+          - The Polisher smooths message tone while preserving intent.
+          - Vibe Check monitors sentiment and can trigger dissolution.
+          - The Historian generates a vague summary and awards badges when a Goast ends.
+          - The Token Economy adds friction to negativity; kindness is free.
+          - Governance is democratic: major decisions require group votes.
 
           ## Technical Context
-          - Built with Next.js 15 (App Router), TypeScript, PostgreSQL + Prisma, WebSocket
-          - Spectral Design System for styling (Tailwind CSS)
-          - Three release phases: Alpha (Q1 2026), Beta (Q2 2026), V1 (Q3 2026)
+          - Next.js 15 (App Router), TypeScript (strict), PostgreSQL with Prisma, WebSocket realtime.
+          - Tailwind CSS with the Spectral design system.
+          - Release phases: Alpha (Q1 2026), Beta (Q2 2026), V1 (Q3 2026).
 
           ## Writing Guidelines
-          1. Use British English spelling throughout:
+          1. Use UK English spelling throughout:
              - colour (not color), behaviour (not behavior), organise (not organize)
              - centre (not center), labelled (not labeled), travelling (not traveling)
 
@@ -148,18 +510,36 @@ jobs:
              - Keep sentences concise
 
           3. Preserve technical accuracy:
-             - Keep all reproduction steps exactly as provided
+             - Keep reproduction steps faithful to the input
              - Maintain code snippets unchanged
              - Preserve error messages verbatim
              - Keep version numbers and technical specifications
 
-          4. Structure for clarity:
-             - Use clear headings (## for sections)
-             - Use bullet points for lists
-             - Use numbered lists for sequential steps
-             - Use code blocks for technical content
+          4. Do not invent details:
+             - Only use information provided in the form data or issue body
+             - If a field is missing, use "Not provided" or an empty list as required by the schema
 
-          5. Tone: Professional yet approachable, neutral and objective, no marketing language or hyperbole
+          5. Tone: Professional yet approachable, neutral and objective, no marketing language or hype
+
+          6. Title rules:
+             - The title must start with a verb such as Add, Fix, Implement, Improve, Enhance, Remove, Update
+             - Use sentence case: first word capitalised, the rest lower case unless proper nouns
+             - Keep it short, specific, and meaningful as a changelog entry
+             - Use plain UK English and avoid jargon where possible
+
+          7. No emojis or formatting:
+             - Do not use emojis
+             - Do not use Markdown symbols in text fields (no headings, bullets, blockquotes, or code fences)
+             - Keep text fields as plain sentences
+
+          8. Lists and nuance:
+             - Use lists only when the schema expects a list (for example, steps to reproduce)
+             - Avoid list-heavy responses; add brief nuance where helpful
+             - If you include a suggestion, question, or opinion, clearly label it with "Suggestion:", "Question:", or "Opinion:"
+
+          9. Labels:
+             - Use only the allowed labels listed below
+             - Never invent new labels or variations
 
           ## Label Selection Guidelines
           Available labels (use ONLY these exact values):
@@ -198,29 +578,32 @@ jobs:
           PROMPT_EOF
           )
 
-          # Append the user prompt with issue data
-          USER_DATA="
-          Now process this issue:
+          # Create the user prompt with issue data and extra context
+          USER_PROMPT=$(cat << PROMPT_EOF
+          You are processing a Goast issue. Use the context below and return JSON that matches the schema exactly.
+
+          Goast purpose: ephemeral, safety-first group chats for teens and young adults, no permanent feed, no DMs.
+          Goast features: Polisher, Vibe Check, Historian, Token Economy, democratic governance.
+          Goast stack: Next.js 15, TypeScript, PostgreSQL + Prisma, WebSocket, Tailwind + Spectral.
 
           Template Type: ${TEMPLATE_TYPE}
           Original Title: ${ISSUE_TITLE}
 
-          Parsed Form Data:
+          Parsed Form Data (authoritative):
           ${PARSED_JSON}
 
-          Original Issue Body:
+          Original Issue Body (for reference):
           ${ISSUE_BODY}
-          "
+          PROMPT_EOF
+          )
 
-          # Combine prompts and escape for JSON
-          COMBINED_PROMPT="${FULL_PROMPT}${USER_DATA}"
-
-          # Use jq to properly escape the prompt and insert it
-          ESCAPED_PROMPT=$(echo "$COMBINED_PROMPT" | jq -Rs .)
-
-          # Update the request with the actual prompt
-          jq --argjson prompt "$ESCAPED_PROMPT" \
-            '.contents[0].parts[0].text = ($prompt | fromjson)' \
+          # Update the request with the actual prompts and schema
+          jq --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_PROMPT" \
+            --slurpfile schema /tmp/response_schema.json \
+            '.systemInstruction.parts[0].text = $system
+            | .contents[0].parts[0].text = $user
+            | .generationConfig.responseSchema = $schema[0]' \
             /tmp/gemini_request.json > /tmp/gemini_request_final.json
 
           # Make API request
@@ -257,6 +640,38 @@ jobs:
             exit 0
           fi
 
+          # Validate issue type matches the template
+          AI_TYPE=$(echo "$GENERATED" | jq -r '.issue_type // empty')
+          if [ "$AI_TYPE" != "$TEMPLATE_TYPE" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=AI issue_type mismatch: expected $TEMPLATE_TYPE, got $AI_TYPE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Enforce verb-first titles for changelog-friendly consistency
+          AI_TITLE=$(echo "$GENERATED" | jq -r '.title // empty')
+          if ! echo "$AI_TITLE" | grep -Eq '^\[[^]]+\]: (Add|Fix|Implement|Improve|Enhance|Remove|Update|Create|Delete|Change|Support|Allow|Prevent|Correct|Reduce|Increase|Enable|Disable|Simplify|Clarify|Align|Adjust|Refine|Expand|Restrict|Consolidate|Document|Investigate|Resolve|Restore|Stabilise|Optimise)\b'; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=AI title does not start with an approved verb: $AI_TITLE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Enforce sentence case after the verb (allow common proper nouns)
+          TITLE_CORE=${AI_TITLE#*: }
+          TITLE_AFTER_VERB=${TITLE_CORE#* }
+          TITLE_SECOND_WORD=${TITLE_AFTER_VERB%% *}
+          if [ -n "$TITLE_SECOND_WORD" ] && echo "$TITLE_SECOND_WORD" | grep -Eq '^[A-Z]'; then
+            case "$TITLE_SECOND_WORD" in
+              Goast|AI|PWA|UI|UX|API|WebSocket|Prisma|PostgreSQL|Next.js|TypeScript)
+                ;;
+              *)
+                echo "error=true" >> $GITHUB_OUTPUT
+                echo "error_message=AI title is not sentence case: $AI_TITLE" >> $GITHUB_OUTPUT
+                exit 0
+                ;;
+            esac
+          fi
+
           # Save for next step
           echo "$GENERATED" > /tmp/ai_result.json
           echo "success=true" >> $GITHUB_OUTPUT
@@ -269,10 +684,10 @@ jobs:
         run: |
           # Read the AI response
           RESPONSE=$(cat /tmp/ai_result.json)
+          TEMPLATE_TYPE=$(cat /tmp/template_type.txt)
 
           # Extract fields
           NEW_TITLE=$(echo "$RESPONSE" | jq -r '.title')
-          NEW_BODY=$(echo "$RESPONSE" | jq -r '.body')
           LABELS=$(echo "$RESPONSE" | jq -r '.labels | join(",")')
           REASONING=$(echo "$RESPONSE" | jq -r '.label_reasoning')
           CONFIDENCE=$(echo "$RESPONSE" | jq -r '.confidence.overall')
@@ -280,9 +695,125 @@ jobs:
           REWRITE_CONFIDENCE=$(echo "$RESPONSE" | jq -r '.confidence.rewrite')
           FLAGS=$(echo "$RESPONSE" | jq -r 'if .flags | length > 0 then .flags | join(", ") else "None" end')
 
+          # Build a deterministic issue body from structured fields
+          if [ "$TEMPLATE_TYPE" = "bug" ]; then
+            SUMMARY=$(echo "$RESPONSE" | jq -r '.issue.summary')
+            EXPECTED=$(echo "$RESPONSE" | jq -r '.issue.expected_behaviour')
+            ACTUAL=$(echo "$RESPONSE" | jq -r '.issue.actual_behaviour')
+            SEVERITY=$(echo "$RESPONSE" | jq -r '.issue.severity')
+            ENVIRONMENT=$(echo "$RESPONSE" | jq -r '.issue.environment')
+            EVIDENCE=$(echo "$RESPONSE" | jq -r '.issue.evidence')
+            ADDITIONAL=$(echo "$RESPONSE" | jq -r '.issue.additional_context')
+            STEPS=$(echo "$RESPONSE" | jq -r '.issue.steps_to_reproduce[]?')
+            AREAS=$(echo "$RESPONSE" | jq -r '.issue.affected_areas[]?')
+
+            {
+              echo "## Summary"
+              echo "$SUMMARY"
+              echo ""
+              echo "## Steps to Reproduce"
+              if [ -n "$STEPS" ]; then
+                echo "$STEPS" | nl -w2 -s'. '
+              else
+                echo "Not provided"
+              fi
+              echo ""
+              echo "## Expected Behaviour"
+              echo "$EXPECTED"
+              echo ""
+              echo "## Actual Behaviour"
+              echo "$ACTUAL"
+              echo ""
+              echo "## Severity"
+              echo "$SEVERITY"
+              echo ""
+              echo "## Affected Areas"
+              if [ -n "$AREAS" ]; then
+                echo "$AREAS" | sed 's/^/- /'
+              else
+                echo "Not provided"
+              fi
+              echo ""
+              echo "## Environment"
+              echo "$ENVIRONMENT"
+              echo ""
+              echo "## Evidence"
+              echo "$EVIDENCE"
+              echo ""
+              echo "## Additional Context"
+              echo "$ADDITIONAL"
+            } > /tmp/issue_body.md
+          elif [ "$TEMPLATE_TYPE" = "feature" ]; then
+            PROBLEM=$(echo "$RESPONSE" | jq -r '.issue.problem_statement')
+            SOLUTION=$(echo "$RESPONSE" | jq -r '.issue.proposed_solution')
+            ALTERNATIVES=$(echo "$RESPONSE" | jq -r '.issue.alternatives_considered')
+            CATEGORY=$(echo "$RESPONSE" | jq -r '.issue.category')
+            TARGET=$(echo "$RESPONSE" | jq -r '.issue.target_release')
+            EFFORT=$(echo "$RESPONSE" | jq -r '.issue.estimated_effort')
+            CONTEXT=$(echo "$RESPONSE" | jq -r '.issue.additional_context')
+            CONTRIBUTION=$(echo "$RESPONSE" | jq -r '.issue.contribution_interest')
+
+            {
+              echo "## Problem Statement"
+              echo "$PROBLEM"
+              echo ""
+              echo "## Proposed Solution"
+              echo "$SOLUTION"
+              echo ""
+              echo "## Alternatives Considered"
+              echo "$ALTERNATIVES"
+              echo ""
+              echo "## Feature Category"
+              echo "$CATEGORY"
+              echo ""
+              echo "## Target Release"
+              echo "$TARGET"
+              echo ""
+              echo "## Estimated Effort"
+              echo "$EFFORT"
+              echo ""
+              echo "## Additional Context"
+              echo "$CONTEXT"
+              echo ""
+              echo "## Contribution Interest"
+              if [ "$CONTRIBUTION" = "true" ]; then
+                echo "Yes"
+              else
+                echo "No"
+              fi
+            } > /tmp/issue_body.md
+          else
+            FEEDBACK_TYPE=$(echo "$RESPONSE" | jq -r '.issue.feedback_type')
+            FEEDBACK=$(echo "$RESPONSE" | jq -r '.issue.feedback')
+            IMPORTANCE=$(echo "$RESPONSE" | jq -r '.issue.importance')
+            CONTEXT=$(echo "$RESPONSE" | jq -r '.issue.additional_context')
+            AREAS=$(echo "$RESPONSE" | jq -r '.issue.related_area[]?')
+
+            {
+              echo "## Feedback Type"
+              echo "$FEEDBACK_TYPE"
+              echo ""
+              echo "## Feedback"
+              echo "$FEEDBACK"
+              echo ""
+              echo "## Related Area"
+              if [ -n "$AREAS" ]; then
+                echo "$AREAS" | sed 's/^/- /'
+              else
+                echo "Not provided"
+              fi
+              echo ""
+              echo "## Importance"
+              echo "$IMPORTANCE"
+              echo ""
+              echo "## Additional Context"
+              echo "$CONTEXT"
+            } > /tmp/issue_body.md
+          fi
+
           # Create the updated body with AI processing note
           cat > /tmp/updated_body.md << EOF
-          ${NEW_BODY}
+          $(cat /tmp/issue_body.md)
 
           ---
 

@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please fill out the sections below.
+        Thanks for taking the time to report a bug. Please fill out what you can. If you are unsure about a field, leave it blank.
 
   - type: textarea
     id: description
     attributes:
       label: Bug Description
-      description: A clear and concise description of what the bug is.
-      placeholder: Describe what's happening...
+      description: What is going wrong?
+      placeholder: The Goast ends after a couple of minutes even though people are still chatting.
     validations:
       required: true
 
@@ -21,11 +21,11 @@ body:
     id: steps
     attributes:
       label: Steps to Reproduce
-      description: How can we reproduce this issue?
+      description: Steps someone else can follow to see the problem.
       placeholder: |
-        1. Go to '...'
-        2. Click on '...'
-        3. See error
+        1. Open a Goast with three people
+        2. Send a message every 30 seconds
+        3. The Goast still dissolves
     validations:
       required: true
 
@@ -33,8 +33,8 @@ body:
     id: expected
     attributes:
       label: Expected Behavior
-      description: What did you expect to happen?
-      placeholder: Describe what should happen...
+      description: What should have happened?
+      placeholder: It should stay active while people are still chatting.
     validations:
       required: true
 
@@ -43,7 +43,7 @@ body:
     attributes:
       label: Actual Behavior
       description: What actually happened?
-      placeholder: Describe what actually happened...
+      placeholder: It dissolved after two minutes even though messages were coming in.
     validations:
       required: true
 
@@ -51,14 +51,15 @@ body:
     id: severity
     attributes:
       label: Severity
-      description: How severe is this bug?
+      description: How severe does this feel to you?
       options:
         - "Cosmetic - Visual/UI defect only"
         - "Minor - Non-critical malfunction"
         - "Major - Core feature broken"
         - "Critical - System down or data loss risk"
+        - "Not sure"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: area
@@ -76,17 +77,18 @@ body:
         - "Infrastructure"
         - "Other/Unknown"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: environment
     attributes:
       label: Environment
-      description: Please provide relevant environment details.
+      description: Please include browser, OS, device, and app version if you know it.
       placeholder: |
         - Browser: Chrome 120
         - OS: macOS 14.0
         - Device: Desktop
+        - App version: 0.3.2 (if known)
     validations:
       required: false
 
@@ -95,7 +97,7 @@ body:
     attributes:
       label: Screenshots / Logs
       description: Add any screenshots or error logs that help explain the problem.
-      placeholder: Drag and drop images here or paste error logs...
+      placeholder: Paste any error messages or logs, or describe what you saw.
     validations:
       required: false
 
@@ -104,6 +106,6 @@ body:
     attributes:
       label: Additional Context
       description: Any other context about the problem.
-      placeholder: Add any other context here...
+      placeholder: Anything else that might help us reproduce or understand it.
     validations:
       required: false

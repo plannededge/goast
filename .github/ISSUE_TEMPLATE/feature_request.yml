@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a feature! We love hearing ideas from the community.
+        Thanks for suggesting a feature. Please fill out what you can. If you are unsure about a field, leave it blank.
 
   - type: textarea
     id: problem
     attributes:
       label: Problem Statement
-      description: What problem does this feature solve? Is this related to a frustration?
-      placeholder: "I'm always frustrated when..."
+      description: What problem does this feature solve?
+      placeholder: It is hard to stop notifications late at night.
     validations:
       required: true
 
@@ -22,7 +22,7 @@ body:
     attributes:
       label: Proposed Solution
       description: Describe the solution you'd like to see.
-      placeholder: Describe your ideal solution...
+      placeholder: Add a quiet hours setting so notifications pause between chosen times.
     validations:
       required: true
 
@@ -30,8 +30,8 @@ body:
     id: alternatives
     attributes:
       label: Alternatives Considered
-      description: Have you considered any alternative solutions or workarounds?
-      placeholder: Describe any alternatives you've thought about...
+      description: Have you tried any workarounds?
+      placeholder: I use phone-wide do not disturb, but that mutes everything.
     validations:
       required: false
 
@@ -49,7 +49,7 @@ body:
         - "AI Polish - Message polishing"
         - "Other"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: target
@@ -69,7 +69,7 @@ body:
     id: effort
     attributes:
       label: Estimated Effort
-      description: How big do you think this feature is?
+      description: Rough size estimate, if you have one.
       options:
         - "XS - Quick win (< 1 hour)"
         - "S - Small (1-4 hours)"
@@ -84,8 +84,8 @@ body:
     id: context
     attributes:
       label: Additional Context
-      description: Add any other context, mockups, or screenshots about the feature request.
-      placeholder: Add any additional context here...
+      description: Any extra details, mockups, or examples.
+      placeholder: Sketches, links, or a short example would be helpful.
     validations:
       required: false
 

@@ -6,28 +6,29 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing your feedback! Your input helps shape the future of Goast.
+        Thanks for sharing your feedback. Please fill out what you can. If you are unsure about a field, leave it blank.
 
   - type: dropdown
     id: feedback-type
     attributes:
       label: Feedback Type
-      description: What kind of feedback are you sharing?
+      description: What kind of feedback is this?
       options:
         - "Suggestion - An idea for improvement"
         - "Observation - Something you noticed"
         - "Praise - Something you love"
         - "Concern - Something that worries you"
         - "Question - Something you want to understand"
+        - "Not sure"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: feedback
     attributes:
       label: Your Feedback
-      description: Share your thoughts in as much detail as you like.
-      placeholder: Tell us what's on your mind...
+      description: Share your feedback in your own words.
+      placeholder: I find the token system a little confusing when I am new.
     validations:
       required: true
 
@@ -49,7 +50,7 @@ body:
         - "Mobile/PWA"
         - "General/Other"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: importance
@@ -61,6 +62,7 @@ body:
         - "High - I think about this often"
         - "Medium - Worth considering"
         - "Low - Just a thought"
+        - "Not sure"
     validations:
       required: false
 
@@ -69,6 +71,6 @@ body:
     attributes:
       label: Additional Context
       description: Any other details, screenshots, or examples.
-      placeholder: Add any additional context here...
+      placeholder: Links, screenshots, or a short example would help.
     validations:
       required: false
