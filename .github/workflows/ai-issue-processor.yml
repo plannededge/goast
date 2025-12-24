@@ -552,6 +552,7 @@ jobs:
           BUG SEVERITY: bug:critical, bug:major, bug:minor, bug:cosmetic, bug:regression
           FEATURE CATEGORY: feature:core, feature:governance, feature:identity, feature:economy, feature:dissolution, feature:ai-polish
           RELEASE: release:alpha, release:beta, release:v1
+          EXPERIMENT: release:experiment
           STANDALONE: good-first-issue, help-wanted
 
           Rules:

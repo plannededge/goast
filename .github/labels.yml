@@ -209,6 +209,10 @@
   color: "FEF2C0"
   description: "Phase 3: Public Launch (Q3 2026)"
 
+- name: "release:experiment"
+  color: "FEF2C0"
+  description: "Shipped as an experiment"
+
 # -----------------------------------------------------------------------------
 # STANDALONE: Common labels without category prefix
 # -----------------------------------------------------------------------------
@@ -239,3 +243,23 @@
 - name: "pending-review"
   color: "FF9500"
   description: "Awaiting moderator approval after AI processing"
+
+# -----------------------------------------------------------------------------
+# AUTOMATION: Project board automation
+# Color: Grey (#C0C0C0)
+# -----------------------------------------------------------------------------
+- name: "automation:locked"
+  color: "C0C0C0"
+  description: "Skip automation for this issue"
+
+- name: "needs_okr_review"
+  color: "C0C0C0"
+  description: "OKR assignment needs manual review"
+
+- name: "flags:cross_cutting_area"
+  color: "C0C0C0"
+  description: "Multiple area labels present"
+
+- name: "flags:cross_cutting_feature"
+  color: "C0C0C0"
+  description: "Multiple feature labels present"

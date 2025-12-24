@@ -1,0 +1,25 @@
+name: OKR Assignment
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  projects: write
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Assign OKR fields
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          ./.github/scripts/okr_assign.sh

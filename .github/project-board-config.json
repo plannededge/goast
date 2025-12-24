@@ -1,0 +1,191 @@
+{
+  "project": {
+    "id": "PVT_kwDOCnb9rs4BLF4b",
+    "number": 12,
+    "owner": "plannededge"
+  },
+  "fields": {
+    "status": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg6xLs4",
+      "options": {
+        "Under consideration": "ab200591",
+        "Planned": "fa627580",
+        "Queued for development": "227eb966",
+        "Shipped (stable)": "902897ff",
+        "Shipped (experiment)": "a4283cc3",
+        "Not proceeding": "86eb8dd1"
+      }
+    },
+    "priority": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg6xNCk",
+      "options": {
+        "P0": "bc80a752",
+        "P1": "9920e268",
+        "P2": "7bd39f14",
+        "P3": "9e53afc1"
+      }
+    },
+    "size": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg6xNCo",
+      "options": {
+        "XS": "6c6483d2",
+        "S": "f784b110",
+        "M": "7515a9f1",
+        "L": "817d0097",
+        "XL": "db339eb2"
+      }
+    },
+    "area": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64DxY",
+      "options": {
+        "Frontend": "73dbd53d",
+        "Backend": "1219b352",
+        "Realtime": "58b136bd",
+        "AI": "d878bc08",
+        "Mobile": "8e2db138",
+        "Database": "8446dc78",
+        "Infrastructure": "5658738a"
+      }
+    },
+    "feature": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64Dys",
+      "options": {
+        "Core": "9b855b1a",
+        "Governance": "156d4a33",
+        "Identity": "ccd42139",
+        "Economy": "be68e081",
+        "Dissolution": "282604d7",
+        "AI polish": "22200209"
+      }
+    },
+    "release_phase": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64D0A",
+      "options": {
+        "Alpha": "13b5ca65",
+        "Beta": "56d3fc77",
+        "V1": "ecedcbe8",
+        "Not set": "5f18834b"
+      }
+    },
+    "okr_quarter": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64EdM",
+      "options": {
+        "Q1 2026": "cd9868fc",
+        "Q2 2026": "089043ca",
+        "Q3 2026": "8eabc597"
+      }
+    },
+    "okr_objective": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64Ej8",
+      "options": {
+        "OKR 1": "e725aca3",
+        "OKR 2": "84cf2dce",
+        "OKR 3": "fe311d06",
+        "OKR 4": "a340dbf8"
+      }
+    },
+    "okr_key_result": {
+      "id": "PVTSSF_lADOCnb9rs4BLF4bzg64Epg",
+      "options": {
+        "KR 1.1": "3fa4ae46",
+        "KR 1.2": "47ce3543",
+        "KR 1.3": "39a52c78",
+        "KR 1.4": "1d784858",
+        "KR 2.1": "d9cc8ab1",
+        "KR 2.2": "e010981d",
+        "KR 2.3": "7bc29168",
+        "KR 2.4": "658d93e0",
+        "KR 2.5": "405916fc",
+        "KR 3.1": "85d2ab79",
+        "KR 3.2": "4112b5eb",
+        "KR 3.3": "83142e8b",
+        "KR 3.4": "f07ba880",
+        "KR 4.1": "f2160968",
+        "KR 4.2": "d7923fa4",
+        "KR 4.3": "ed3f1cb0",
+        "KR 4.4": "f67f4fb6"
+      }
+    }
+  },
+  "label_mappings": {
+    "priority": {
+      "priority:critical": "P0",
+      "priority:high": "P1",
+      "priority:medium": "P2",
+      "priority:low": "P3"
+    },
+    "effort": {
+      "effort:xs": "XS",
+      "effort:s": "S",
+      "effort:m": "M",
+      "effort:l": "L",
+      "effort:xl": "XL"
+    },
+    "area": {
+      "area:frontend": "Frontend",
+      "area:backend": "Backend",
+      "area:realtime": "Realtime",
+      "area:ai": "AI",
+      "area:mobile": "Mobile",
+      "area:database": "Database",
+      "area:infra": "Infrastructure"
+    },
+    "feature": {
+      "feature:core": "Core",
+      "feature:governance": "Governance",
+      "feature:identity": "Identity",
+      "feature:economy": "Economy",
+      "feature:dissolution": "Dissolution",
+      "feature:ai-polish": "AI polish"
+    },
+    "release_phase": {
+      "release:alpha": "Alpha",
+      "release:beta": "Beta",
+      "release:v1": "V1"
+    }
+  },
+  "precedence": {
+    "area": [
+      "area:frontend",
+      "area:backend",
+      "area:realtime",
+      "area:ai",
+      "area:mobile",
+      "area:database",
+      "area:infra"
+    ],
+    "feature": [
+      "feature:core",
+      "feature:governance",
+      "feature:identity",
+      "feature:economy",
+      "feature:dissolution",
+      "feature:ai-polish"
+    ],
+    "priority": [
+      "priority:critical",
+      "priority:high",
+      "priority:medium",
+      "priority:low"
+    ],
+    "effort": [
+      "effort:xs",
+      "effort:s",
+      "effort:m",
+      "effort:l",
+      "effort:xl"
+    ],
+    "release_phase": [
+      "release:alpha",
+      "release:beta",
+      "release:v1"
+    ]
+  },
+  "labels": {
+    "automation_locked": "automation:locked",
+    "okr_review": "needs_okr_review",
+    "experiment": "release:experiment",
+    "cross_cutting_area": "flags:cross_cutting_area",
+    "cross_cutting_feature": "flags:cross_cutting_feature"
+  }
+}
