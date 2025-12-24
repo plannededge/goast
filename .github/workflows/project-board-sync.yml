@@ -21,6 +21,6 @@ jobs:
 
       - name: Sync project fields
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           ./.github/scripts/project_board_sync.sh
