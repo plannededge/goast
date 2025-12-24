@@ -39,12 +39,16 @@ update_field() {
 
 main() {
   local issue_number issue_node_id issue_title issue_body repo labels_json
-  issue_number=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
-  issue_node_id=$(jq -r '.issue.node_id' "$GITHUB_EVENT_PATH")
-  issue_title=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
-  issue_body=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-  repo=$(jq -r '.repository.full_name' "$GITHUB_EVENT_PATH")
-  labels_json=$(jq -c '.issue.labels | map(.name)' "$GITHUB_EVENT_PATH")
+  issue_number=$(jq -r '.issue.number // empty' "$GITHUB_EVENT_PATH")
+  issue_node_id=$(jq -r '.issue.node_id // empty' "$GITHUB_EVENT_PATH")
+  issue_title=$(jq -r '.issue.title // empty' "$GITHUB_EVENT_PATH")
+  issue_body=$(jq -r '.issue.body // empty' "$GITHUB_EVENT_PATH")
+  repo=$(jq -r '.repository.full_name // empty' "$GITHUB_EVENT_PATH")
+  labels_json=$(jq -c '.issue.labels | map(.name)' "$GITHUB_EVENT_PATH" 2>/dev/null || echo '[]')
+
+  if [ -z "$issue_number" ] || [ -z "$issue_node_id" ]; then
+    exit 0
+  fi
 
   local has_lock
   has_lock=$(jq -r --argjson labels "$labels_json" --arg lock "$LOCK_LABEL" '$labels | index($lock) != null' <<< "")

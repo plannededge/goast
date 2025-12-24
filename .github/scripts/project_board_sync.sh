@@ -188,7 +188,7 @@ process_issue() {
 }
 
 reconcile_project_items() {
-  local end_cursor=null
+  local end_cursor=
   local has_next=true
 
   while [ "$has_next" = "true" ]; do
@@ -196,7 +196,11 @@ reconcile_project_items() {
     query='query($projectId:ID!, $after:String){ node(id:$projectId){ ... on ProjectV2 { items(first:100, after:$after){ nodes{ id content{ ... on Issue { id number state repository{ nameWithOwner } labels(first:50){ nodes{ name } } } } } pageInfo{ hasNextPage endCursor } } } } }'
 
     local vars
-    vars=$(jq -n --arg projectId "$PROJECT_ID" --arg after "$end_cursor" '{projectId:$projectId, after:($after=="null"?null:$after)}')
+    if [ -z "$end_cursor" ]; then
+      vars=$(jq -n --arg projectId "$PROJECT_ID" '{projectId:$projectId, after:null}')
+    else
+      vars=$(jq -n --arg projectId "$PROJECT_ID" --arg after "$end_cursor" '{projectId:$projectId, after:$after}')
+    fi
 
     local response
     response=$(graphql "$query" "$vars")
