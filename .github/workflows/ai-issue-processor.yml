@@ -27,13 +27,13 @@ jobs:
         run: |
           if [[ "${{ contains(github.event.issue.labels.*.name, 'type:bug') }}" == "true" ]]; then
             echo "type=bug" >> $GITHUB_OUTPUT
-            echo "template=.github/ISSUE_TEMPLATE/bug_report.yml" >> $GITHUB_OUTPUT
+            echo "template=bug_report.yml" >> $GITHUB_OUTPUT
           elif [[ "${{ contains(github.event.issue.labels.*.name, 'type:feature') }}" == "true" ]]; then
             echo "type=feature" >> $GITHUB_OUTPUT
-            echo "template=.github/ISSUE_TEMPLATE/feature_request.yml" >> $GITHUB_OUTPUT
+            echo "template=feature_request.yml" >> $GITHUB_OUTPUT
           else
             echo "type=feedback" >> $GITHUB_OUTPUT
-            echo "template=.github/ISSUE_TEMPLATE/feedback.yml" >> $GITHUB_OUTPUT
+            echo "template=feedback.yml" >> $GITHUB_OUTPUT
           fi
 
       - name: Parse issue form
