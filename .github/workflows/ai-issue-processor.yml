@@ -48,7 +48,8 @@ jobs:
         run: |
           # Read the parser output and convert 'None' values to 'Not provided'
           # This handles dropdown fields that weren't selected in the form
-          PARSED_JSON="${{ steps.parser.outputs.json }}"
+          # Use a file to avoid shell quoting issues with special characters in JSON
+          echo '${{ steps.parser.outputs.json }}' > /tmp/parsed_json.txt
 
           # Create jq filter file
           cat > /tmp/normalise.jq << 'JQEOF'
@@ -73,7 +74,7 @@ jobs:
           JQEOF
 
           # Apply normalisation
-          NORMALISED_JSON=$(echo "$PARSED_JSON" | jq -f /tmp/normalise.jq)
+          NORMALISED_JSON=$(jq -f /tmp/normalise.jq /tmp/parsed_json.txt)
 
           echo "json=$NORMALISED_JSON" >> $GITHUB_OUTPUT
 
