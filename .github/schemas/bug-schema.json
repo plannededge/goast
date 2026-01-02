@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "issue_type": {
+      "type": "string",
+      "enum": ["bug"],
+      "description": "Issue type identifier",
+      "examples": ["bug"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Clear, concise issue title in UK English, starting with a verb",
+      "examples": ["[Bug]: Fix Goast dissolving after two minutes despite new messages"]
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Plain-English summary of the bug",
+          "examples": ["The Goast ends after two minutes even when new messages are still being sent."]
+        },
+        "steps_to_reproduce": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ordered list of steps to reproduce the bug",
+          "examples": [["Open a Goast with three members", "Send a message every 30 seconds for three minutes", "Observe the Goast dissolves anyway"]]
+        },
+        "expected_behaviour": {
+          "type": "string",
+          "description": "What should have happened",
+          "examples": ["The Goast should remain active while messages are still being sent."]
+        },
+        "actual_behaviour": {
+          "type": "string",
+          "description": "What actually happened",
+          "examples": ["The Goast dissolves after two minutes despite ongoing messages."]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "Cosmetic - Visual/UI defect only",
+            "Minor - Non-critical malfunction",
+            "Major - Core feature broken",
+            "Critical - System down or data loss risk",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Severity as selected in the issue form",
+          "examples": ["Major - Core feature broken"]
+        },
+        "affected_areas": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Frontend - UI/UX",
+              "Backend - API/Server",
+              "AI - Polisher/Vibe Check",
+              "Database",
+              "Realtime - WebSocket",
+              "Mobile/PWA",
+              "Infrastructure",
+              "Other/Unknown"
+            ]
+          },
+          "description": "Affected areas as selected in the issue form",
+          "examples": [["Realtime - WebSocket", "Frontend - UI/UX"]]
+        },
+        "environment": {
+          "type": "string",
+          "description": "Environment details, or 'Not provided' if missing",
+          "examples": ["Browser: Chrome 120\nOS: macOS 14\nDevice: Desktop"]
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Screenshots or logs, or 'Not provided' if missing",
+          "examples": ["Console error: \"socket closed\""]
+        },
+        "additional_context": {
+          "type": "string",
+          "description": "Any extra context, or 'Not provided' if missing",
+          "examples": ["Happens in the alpha build on staging."]
+        }
+      },
+      "required": [
+        "summary",
+        "steps_to_reproduce",
+        "expected_behaviour",
+        "actual_behaviour",
+        "severity",
+        "affected_areas",
+        "environment",
+        "evidence",
+        "additional_context"
+      ]
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of label names from the allowed taxonomy",
+      "examples": [["type:bug", "area:realtime", "bug:major", "status:triage"]]
+    },
+    "label_reasoning": {
+      "type": "string",
+      "description": "Brief explanation of why each label was chosen",
+      "examples": ["type:bug because behaviour is broken; area:realtime due to socket errors; bug:major as core chat lifecycle is affected."]
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "overall": { "type": "number" },
+        "labels": { "type": "number" },
+        "rewrite": { "type": "number" }
+      },
+      "required": ["overall", "labels", "rewrite"],
+      "examples": [{"overall": 0.82, "labels": 0.78, "rewrite": 0.86}]
+    },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any concerns or flags for moderator attention",
+      "examples": [["needs_more_info"]]
+    }
+  },
+  "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+}

@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "issue_type": {
+      "type": "string",
+      "enum": ["feature"],
+      "description": "Issue type identifier",
+      "examples": ["feature"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Clear, concise feature title in UK English, starting with a verb",
+      "examples": ["[Feature]: Add quiet hours for Goast notifications"]
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "problem_statement": {
+          "type": "string",
+          "description": "Plain-English problem statement",
+          "examples": ["I get notifications late at night and it is hard to sleep."]
+        },
+        "proposed_solution": {
+          "type": "string",
+          "description": "Plain-English description of the desired solution",
+          "examples": ["Add a quiet hours setting so notifications pause between chosen times."]
+        },
+        "alternatives_considered": {
+          "type": "string",
+          "description": "Any alternatives mentioned, or 'Not provided' if missing",
+          "examples": ["Turning on phone-wide do not disturb, but that mutes everything."]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Core - Chat/messaging mechanics",
+            "Governance - Voting/democracy features",
+            "Identity - Avatars/usernames/badges",
+            "Economy - Token system",
+            "Dissolution - Goast lifecycle/fading",
+            "AI Polish - Message polishing",
+            "Other",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Feature category as selected in the issue form",
+          "examples": ["Core - Chat/messaging mechanics"]
+        },
+        "target_release": {
+          "type": "string",
+          "enum": [
+            "Alpha - Q1 2026",
+            "Beta - Q2 2026",
+            "V1 Launch - Q3 2026",
+            "Post-launch / Future",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Target release as selected in the issue form",
+          "examples": ["Beta - Q2 2026"]
+        },
+        "estimated_effort": {
+          "type": "string",
+          "enum": [
+            "XS - Quick win (< 1 hour)",
+            "S - Small (1-4 hours)",
+            "M - Medium (1-2 days)",
+            "L - Large (3-5 days)",
+            "XL - Extra large (> 1 week)",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Estimated effort as selected in the issue form",
+          "examples": ["M - Medium (1-2 days)"]
+        },
+        "additional_context": {
+          "type": "string",
+          "description": "Any extra context, or 'Not provided' if missing",
+          "examples": ["Mockups attached showing the settings screen."]
+        },
+        "contribution_interest": {
+          "type": "boolean",
+          "description": "True if the reporter wants to help implement the feature",
+          "examples": [true]
+        }
+      },
+      "required": [
+        "problem_statement",
+        "proposed_solution",
+        "alternatives_considered",
+        "category",
+        "target_release",
+        "estimated_effort",
+        "additional_context",
+        "contribution_interest"
+      ]
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of label names from the allowed taxonomy",
+      "examples": [["type:feature", "feature:core", "status:triage"]]
+    },
+    "label_reasoning": {
+      "type": "string",
+      "description": "Brief explanation of why each label was chosen",
+      "examples": ["type:feature because a new capability is requested; feature:core as it affects chat settings."]
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "overall": { "type": "number" },
+        "labels": { "type": "number" },
+        "rewrite": { "type": "number" }
+      },
+      "required": ["overall", "labels", "rewrite"],
+      "examples": [{"overall": 0.76, "labels": 0.7, "rewrite": 0.8}]
+    },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any concerns or flags for moderator attention",
+      "examples": [["scope_creep_risk"]]
+    }
+  },
+  "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+}

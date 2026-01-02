@@ -1,0 +1,109 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "issue_type": {
+      "type": "string",
+      "enum": ["feedback"],
+      "description": "Issue type identifier",
+      "examples": ["feedback"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Clear, concise feedback title in UK English, starting with a verb",
+      "examples": ["[Feedback]: Improve clarity of token costs for blunt messages"]
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "feedback_type": {
+          "type": "string",
+          "enum": [
+            "Suggestion - An idea for improvement",
+            "Observation - Something you noticed",
+            "Praise - Something you love",
+            "Concern - Something that worries you",
+            "Question - Something you want to understand",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Feedback type as selected in the issue form",
+          "examples": ["Concern - Something that worries you"]
+        },
+        "feedback": {
+          "type": "string",
+          "description": "Plain-English feedback content",
+          "examples": ["I worry that the token cost might discourage honest conversations."]
+        },
+        "related_area": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Core - Chat/messaging",
+              "Governance - Voting/democracy",
+              "Identity - Avatars/usernames/badges",
+              "Economy - Token system",
+              "Dissolution - Goast lifecycle",
+              "AI Polish - Message polishing",
+              "Frontend - UI/UX",
+              "Backend - API/Server",
+              "Mobile/PWA",
+              "General/Other"
+            ]
+          },
+          "description": "Related areas as selected in the issue form",
+          "examples": [["Economy - Token system", "AI Polish - Message polishing"]]
+        },
+        "importance": {
+          "type": "string",
+          "enum": [
+            "Critical - This really matters to me",
+            "High - I think about this often",
+            "Medium - Worth considering",
+            "Low - Just a thought",
+            "Not sure",
+            "Not provided"
+          ],
+          "description": "Importance as selected in the issue form, or 'Not provided' if missing",
+          "examples": ["High - I think about this often"]
+        },
+        "additional_context": {
+          "type": "string",
+          "description": "Any extra context, or 'Not provided' if missing",
+          "examples": ["This came up in a group with new users."]
+        }
+      },
+      "required": ["feedback_type", "feedback", "related_area", "importance", "additional_context"]
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of label names from the allowed taxonomy",
+      "examples": [["type:enhancement", "area:ai", "status:triage"]]
+    },
+    "label_reasoning": {
+      "type": "string",
+      "description": "Brief explanation of why each label was chosen",
+      "examples": ["type:enhancement because it is feedback on improving behaviour; area:ai due to polishing impact."]
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "overall": { "type": "number" },
+        "labels": { "type": "number" },
+        "rewrite": { "type": "number" }
+      },
+      "required": ["overall", "labels", "rewrite"],
+      "examples": [{"overall": 0.72, "labels": 0.68, "rewrite": 0.78}]
+    },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any concerns or flags for moderator attention",
+      "examples": [[]]
+    }
+  },
+  "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+}
