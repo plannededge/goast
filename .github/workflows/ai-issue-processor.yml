@@ -87,7 +87,10 @@ jobs:
         run: |
           # Save issue data to files to handle special characters safely
           echo '${{ github.event.issue.title }}' > /tmp/issue_title.txt
-          echo '${{ github.event.issue.body }}' > /tmp/issue_body.txt
+          # Use heredoc for issue body to handle multi-line content and special characters
+          cat > /tmp/issue_body.txt << 'BODYEOF'
+          ${{ github.event.issue.body }}
+          BODYEOF
           # Normalised JSON is already in the file from the previous step
           echo '${{ steps.template.outputs.type }}' > /tmp/template_type.txt
 
