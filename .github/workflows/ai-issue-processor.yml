@@ -50,27 +50,30 @@ jobs:
           # This handles dropdown fields that weren't selected in the form
           PARSED_JSON="${{ steps.parser.outputs.json }}"
 
-          # Replace 'None', '_No response_', and empty values with 'Not provided' for all template types
-          NORMALISED_JSON=$(echo "$PARSED_JSON" | jq '
-            # Feature request fields
-            if .category == "None" then .category = "Not provided" else . end |
-            if .target == "None" then .target = "Not provided" else . end |
-            if .effort == "None" then .effort = "Not provided" else . end |
-            if .alternatives == "None" or .alternatives == "_No response_" or .alternatives == "" then .alternatives = "Not provided" else . end |
-            if .context == "None" or .context == "_No response_" or .context == "" then .context = "Not provided" else . end |
-            if .terms == "None" or .terms == "" then .terms = [] else . end |
+          # Create jq filter file
+          cat > /tmp/normalise.jq << 'JQEOF'
+          # Feature request fields
+          if .category == "None" then .category = "Not provided" else . end |
+          if .target == "None" then .target = "Not provided" else . end |
+          if .effort == "None" then .effort = "Not provided" else . end |
+          if .alternatives == "None" or .alternatives == "_No response_" or .alternatives == "" then .alternatives = "Not provided" else . end |
+          if .context == "None" or .context == "_No response_" or .context == "" then .context = "Not provided" else . end |
+          if .terms == "None" or .terms == "" then .terms = [] else . end |
 
-            # Bug report fields
-            if .severity == "None" then .severity = "Not provided" else . end |
-            if .area == "None" or .area == "" or .area == [] then .area = ["Not provided"] else . end |
-            if .environment == "None" or .environment == "_No response_" or .environment == "" then .environment = "Not provided" else . end |
-            if .screenshots == "None" or .screenshots == "_No response_" or .screenshots == "" then .screenshots = "Not provided" else .end |
-            if .additional == "None" or .additional == "_No response_" or .additional == "" then .additional = "Not provided" else . end |
+          # Bug report fields
+          if .severity == "None" then .severity = "Not provided" else . end |
+          if .area == "None" or .area == "" or .area == [] then .area = ["Not provided"] else . end |
+          if .environment == "None" or .environment == "_No response_" or .environment == "" then .environment = "Not provided" else . end |
+          if .screenshots == "None" or .screenshots == "_No response_" or .screenshots == "" then .screenshots = "Not provided" else . end |
+          if .additional == "None" or .additional == "_No response_" or .additional == "" then .additional = "Not provided" else . end |
 
-            # Feedback fields
-            if ."feedback-type" == "None" then ."feedback-type" = "Not provided" else . end |
-            if .importance == "None" then .importance = "Not provided" else . end
-          ')
+          # Feedback fields
+          if ."feedback-type" == "None" then ."feedback-type" = "Not provided" else . end |
+          if .importance == "None" then .importance = "Not provided" else . end
+          JQEOF
+
+          # Apply normalisation
+          NORMALISED_JSON=$(echo "$PARSED_JSON" | jq -f /tmp/normalise.jq)
 
           echo "json=$NORMALISED_JSON" >> $GITHUB_OUTPUT
 
