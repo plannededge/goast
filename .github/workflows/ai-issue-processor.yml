@@ -49,7 +49,9 @@ jobs:
           # Read the parser output and convert 'None' values to 'Not provided'
           # This handles dropdown fields that weren't selected in the form
           # Use a file to avoid shell quoting issues with special characters in JSON
-          echo '${{ steps.parser.outputs.json }}' > /tmp/parsed_json.txt
+          cat > /tmp/parsed_json.txt << 'JSONEOF'
+          ${{ steps.parser.outputs.json }}
+          JSONEOF
 
           # Create jq filter file
           cat > /tmp/normalise.jq << 'JQEOF'
