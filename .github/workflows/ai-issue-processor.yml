@@ -78,7 +78,9 @@ jobs:
           # Apply normalisation
           NORMALISED_JSON=$(jq -f /tmp/normalise.jq /tmp/parsed_json.txt)
 
-          echo "json=$NORMALISED_JSON" >> $GITHUB_OUTPUT
+          # Write to file for next step (GitHub Actions outputs can't handle multi-line JSON)
+          echo "$NORMALISED_JSON" > /tmp/normalised_json.txt
+          echo "json_file=/tmp/normalised_json.txt" >> $GITHUB_OUTPUT
 
       - name: Prepare API request
         id: prepare
@@ -86,7 +88,7 @@ jobs:
           # Save issue data to files to handle special characters safely
           echo '${{ github.event.issue.title }}' > /tmp/issue_title.txt
           echo '${{ github.event.issue.body }}' > /tmp/issue_body.txt
-          echo '${{ steps.normaliser.outputs.json }}' > /tmp/parsed_data.json
+          # Normalised JSON is already in the file from the previous step
           echo '${{ steps.template.outputs.type }}' > /tmp/template_type.txt
 
       - name: Call Gemini API
@@ -97,7 +99,7 @@ jobs:
           # Read data from files
           ISSUE_TITLE=$(cat /tmp/issue_title.txt)
           ISSUE_BODY=$(cat /tmp/issue_body.txt)
-          PARSED_JSON=$(cat /tmp/parsed_data.json)
+          PARSED_JSON=$(cat /tmp/normalised_json.txt)
           TEMPLATE_TYPE=$(cat /tmp/template_type.txt)
 
           # Build the response schema for the current issue type
