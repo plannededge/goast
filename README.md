@@ -1,119 +1,175 @@
-# Goast
+# Goast — A social messaging app
 
-**Here then gone.**
+No admin. No drama. No spam.
 
-> *Conversations that matter, right now. Everything else fades away.*
+> Group chats for conversations that matter
 
----
+Goast is an invite-only, AI-mediated, temporary group-chat PWA designed for teens and young adults (13-22). Group chats ("Goasts") dissolve by design, governed by members through voting rather than admins.
 
-## Executive Summary
+Goast replaces the noisy, spammy and impersonal group chats that people have been stuck with. With Goast, there are no influencers, no trolls, no spammers, no drama queens and kings. Just conversations with friends, family, and any group of people who want to plan, organise, celebrate or just vibe together.
 
-**Goast** is a reimagined communication network designed for the post-social-media generation. Built in response to the growing global movement for safer online spaces for teens, Goast fundamentally changes the architecture of digital connection.
+## Another social app? Why?
 
-We replaced the permanent, anxiety-inducing "feed" with **ephemeral, self-governing group chats**. There are no influencers, no infinite scrolls, and no permanent records. Just you and your friends, in the moment. When the conversation stops, the Goast dissolves—like solid smoke.
+Traditional social platforms are built on permanent content accumulation: more posts, more followers, more history. This permanence has well-documented consequences—cyberbullying that follows you for years, old posts resurfacing out of context, and the anxiety of maintaining a public persona.
 
----
+Goast takes a different approach. Rather than bolting safety features onto an existing architecture, we designed the product around three constraints from the start:
 
-## The Philosophy
+### No DMs
 
-Traditional social media is built on **accumulation**: more posts, more followers, more history. This accumulation breeds toxicity, comparison, and anxiety.
+Every conversation on Goast happens in a group of 3 or more. There are no private 1-on-1 messages. This removes the primary vector for targeted harassment and grooming—the hidden side channel where behaviour goes unwitnessed.
 
-Goast is built on **dissolution**.
+### No admins
 
-- **Anti-Toxicity by Design:** We didn't just write better community guidelines; we built a system where toxicity is economically expensive and kindness is the default.
-- **No Admin Dictators:** There are no single admins with absolute power. Every major decision—from changing the group name to removing a member—is a democratic vote.
-- **Group First:** We removed the #1 vector for online bullying: the Direct Message. Every conversation on Goast happens in a group of 3 or more.
+Group chats typically have a single admin with unilateral control. On Goast, every significant decision—from changing the group name to removing a member—requires a vote. Power is distributed, not concentrated.
 
----
+### No permanence
 
-## The Experience
+Goasts dissolve. There is no archive to haunt you, no content to screenshot and weaponise months later. When a conversation is done, it fades. This ephemerality is a core architectural choice, not a feature toggle.
 
-### Solid Smoke
-Every group chat ("Goast") is temporary. It exists only as long as it is alive with conversation. If the vibe fades, the Goast fades. There is no "archive" to haunt you years later.
+These aren't community guidelines hoping for compliance. They're structural constraints enforced at the database level.
 
-### Polished by Default
-When you type a message, our AI instantly polishes it—smoothing out edges, checking for hurtful language, and ensuring the vibe stays friendly. Want to say *exactly* what you typed? You can, but it costs **Tokens**. Friction is applied to negativity; kindness is free.
+## How Goast works
 
-### Democracy in Action
-Want to extend the life of your chat? Want to change the topic? **Vote on it.** Governance is distributed. You own your community.
+### Creating a Goast
 
-### Identity, Reimagined
-No uploaded photos. No "perfect" usernames. Your identity is generated for you—a unique, deterministic avatar and a whimsical username (like `swift.blue.piano`). You are defined by your actions and the badges you earn, not by your selfie game.
+A Goast is a group chat with a purpose. You create one by inviting at least two other people—the minimum group size is always 3. You set a title, optionally a goal (e.g., "Plan a birthday night", "Organise a camping trip"), and dissolution rules.
 
----
+### Inviting members
 
-## The "Black Box" AI
+Goast is invite-only. There is no public signup, no discoverability, no open join links. You invite specific people using a link that expires after 72 hours. This keeps groups intentional and trusted.
 
-Goast feels like magic, but it's powered by a sophisticated, privacy-first AI layer designed to protect, not survey.
+### Messaging
 
-### The Polisher
-Our message augmentation layer sits between your keyboard and the chat. It understands context, teen slang, and intent, offering a gentler version of your thought without losing your meaning. It turns "This is stupid" into "I'm not loving this," preserving the sentiment while removing the sting.
+By default, messages are rewritten by AI for clarity and tone before being sent. This smooths out edges without changing meaning—"This is stupid" might become "I'm not sure about this". You can still send your exact words using Direct mode, but this costs tokens (an in-app currency). The friction is deliberate: unmediated text requires a conscious choice.
 
-### The Vibe Check
-We don't "monitor" chats like a surveillance state. Instead, the system senses the *momentum* and *sentiment* of a conversation. When energy drops or toxicity rises, the Goast naturally begins to dissolve. It's an automated immune system for your social circle.
+### Governance by voting
 
-### The Historian
-When a Goast finally dissolves, no raw logs remain. The AI generates a vague, thematic summary of what the group achieved together (e.g., "Planned the beach trip," "Debated the best pizza toppings"), awards badges for roles played (The Peacemaker, The Hype Person), and then wipes the slate clean.
+Any member can propose changes: extend the Goast's lifetime, change the title, kick a member. All proposals go to a vote. Different actions require different thresholds—60% for most decisions, 75% for kicks. No single person can override the group.
 
----
+### Dissolution
 
-## Engineering & Technology
+All Goasts dissolve. You set the rules at creation: a fixed lifetime (e.g., 7 days), or inactivity-based dissolution (e.g., dissolves if no messages for 4 days). When dissolution triggers, members have 24 hours to vote on extending. If the vote fails, the Goast enters a 7-day wind-down period and then archives. Message content is not retained after archival.
 
-Goast is a modern Progressive Web App (PWA) built for speed, safety, and scale. We use cutting-edge technology to ensure that "temporary" really means temporary.
+## AI features
 
-### The Stack
+Goast uses AI throughout the product. These are production features, not experiments. All AI calls route through Cloudflare AI Gateway for unified logging, caching, and rate limiting.
 
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 15 (App Router) |
-| **Language** | TypeScript (Strict Mode) |
-| **Database** | PostgreSQL (with Prisma ORM) |
-| **Realtime** | WebSocket-based event architecture |
-| **Styling** | Tailwind CSS + Custom Design System ("Spectral") |
+### Message rewriting (default path)
 
-### The Test Stack: Reliability is Safety
+Every message passes through an LLM rewrite before being sent. The system prompt instructs the model to preserve meaning while smoothing tone, using teen-appropriate language and British English. Output is capped at 180 characters. If the AI call fails, the original message still sends (fail-open design). This uses OpenAI's GPT-5 Nano for low latency.
 
-Because Goast is a safety-first platform, our testing strategy goes beyond standard bug checking. We employ a rigorous "Red Teaming" approach.
+Technical details: Structured output via Zod schema validation. @mentions are preserved exactly. The rewrite is synchronous, blocking send until complete (typically <500ms).
 
-- **AI Smoke Tests:** We run automated scripts that fire varied, challenging, and edge-case inputs at our AI layer. This ensures the "Polisher" cannot be tricked into letting toxic content slip through and that our moderation rails hold firm under pressure.
-- **Simulation Testing:** We simulate entire lifecycles of group chats—creating, chatting, voting, and dissolving—thousands of times to ensure the mathematical models behind our "Token Economy" and "Dissolution Timers" remain balanced and fair.
-- **Privacy Verification:** Automated tests verify that when a Goast dissolves, data is actually effectively removed or anonymized in accordance with our strict privacy promises.
+### Direct text moderation
 
----
+When users choose to bypass AI rewriting (Direct mode), messages still pass through a moderation layer. This checks for explicit hate speech, threats, sexual content, doxxing attempts, and self-harm content. Hard blocks prevent sending; soft flags are logged but allowed.
 
-## Roadmap
+### Suggested replies
 
-### Phase 1: Closed Alpha (Q1 2026)
-- **Goal:** Product-market fit validation & safety testing.
-- **Audience:** 500 hand-picked users in Australia.
-- **Focus:** Core chat mechanics, voting systems, and AI model tuning.
+Four context-aware reply suggestions appear above the message composer. These are generated from the last 15 messages in the conversation. Uses OpenAI's GPT-5 Mini. Suggestions are casual and teen-appropriate.
 
-### Phase 2: Invite-Only Beta (Q2 2026)
-- **Goal:** Prove viral coefficient & refine AI models.
-- **Audience:** 5,000 users via viral invite mechanics.
-- **Focus:** Scaling infrastructure, "Token Economy" balancing, and badge reputation systems.
+### Chat agents (AI participants)
 
-### Phase 3: Launch (Q3 2026)
-- **Goal:** Establish as the go-to platform for safe digital connection.
-- **Audience:** General public (starting in Australia).
-- **Focus:** International expansion, advanced governance features, and native mobile apps.
+Goasts can have AI agents as participants. Three personas exist:
 
----
+- **Riley (Jester)** — keeps things light, defuses tension with humour
+- **Sage (Vibe Check)** — asks thoughtful questions, encourages quieter members
+- **Quinn (Troll Defender)** — redirects trolling, supports targeted members
+
+Agents use a "thought before action" pattern: each message triggers an internal evaluation of whether to respond. Eight heuristics determine intervention (relevance, urgency, coherence, persona fit, etc.). Agents have rate limits via a token pool that members can refill.
+
+### Agent guardrails
+
+Pattern-based detection for teen safety (self-harm, grooming, exploitation), provocation resistance (jailbreak attempts, prompt injection), and scope enforcement (off-topic requests, advice-seeking). Crisis detection triggers resources from Samaritans, Childline, and Shout.
+
+### Goast summaries
+
+When a Goast dissolves, an AI generates a thematic summary of what was discussed ("Planned the beach trip", "Debated pizza toppings"). Uses Google Gemini 2.5 Pro for large context windows. The summary is viewable for 30 days; raw message content is not retained.
+
+### Link analysis (Spectral Links)
+
+Shared links are enriched with AI-generated metadata using Perplexity Sonar. Categories include Video, Audio, Location, Social, Commerce, Event, Article. This provides richer link previews without requiring users to click through.
+
+### Avatar generation
+
+Users can generate AI avatars using Replicate. Sliders control vibe, energy, expression, and other parameters. Generation costs 25 tokens. A moderation pass is required before avatars are saved.
+
+### Reaction image generation (Reaction Lab)
+
+Users can generate custom reaction images from templates for use in chat. Costs 10 tokens per generation. Images are saved to a personal "deck" for instant reuse.
+
+## Tech stack
+
+### Frontend
+
+| Technology          | Version | Purpose                                      |
+|---------------------|---------|----------------------------------------------|
+| Next.js             | 15.x    | Framework (App Router, Server Components, Turbopack) |
+| React               | 19.x    | UI library                                   |
+| TypeScript          | 5.7.x   | Language (strict mode)                        |
+| Tailwind CSS        | 3.4.x   | Styling                                      |
+| Framer Motion       | 11.x    | Animations                                   |
+| TanStack Query      | 5.x     | Server state (via tRPC integration)            |
+| class-variance-authority | 0.7.x | Component variants                           |
+| Servist             | 9.x     | PWA/Service Worker                           |
+
+### Backend / API
+
+| Technology          | Version | Purpose                                      |
+|---------------------|---------|----------------------------------------------|
+| tRPC                | 11.x RC | End-to-end type-safe RPC                      |
+| Prisma              | 5.22.x  | ORM                                          |
+| PostgreSQL          | 17.x    | Database (Fly.io Managed Postgres)             |
+| Zod                 | 3.24.x  | Runtime validation                           |
+| Ingest              | 3.27.x  | Background job processing                     |
+| Pusher              | 5.2.x   | Real-time WebSocket messaging                 |
+
+### LLMOps
+
+| Technology          | Purpose                                      |
+|---------------------|----------------------------------------------|
+| Cloudflare AI Gateway | Unified AI proxy, request logging, caching, key management |
+| OpenAI API          | Message rewriting (GPT-5 Nano), suggestions (GPT-5 Mini), moderation |
+| Google Gemini API   | Chat summaries (Gemini 2.5 Pro, large context) |
+| Perplexity Sonar API | Link analysis and enrichment                  |
+| Replicate           | AI avatar generation                         |
+
+### Infrastructure
+
+| Technology          | Purpose                                      |
+|---------------------|----------------------------------------------|
+| Fly.io              | App hosting (Next.js) + Managed Postgres       |
+| Cloudflare Workers  | Marketing site hosting (via OpenNext adapter)  |
+| Cloudflare R2       | Object storage (avatars, images)               |
+| Doppler             | Secrets management                           |
+| Postmark            | Transactional email                          |
+| web-push            | Push notifications                           |
+
+### Monitoring & analytics
+
+| Technology | Purpose                                      |
+|------------|----------------------------------------------|
+| Sentry     | Error tracking, performance monitoring, session replay |
+| Mixpanel   | Product analytics (browser + server-side)      |
+
+### Build tooling
+
+| Technology      | Version | Purpose                                      |
+|-----------------|---------|----------------------------------------------|
+| pnpm            | 9.14.x  | Package manager                              |
+| Turborepo       | 2.3.x   | Monorepo build system                         |
+| Vitest          | 4.x     | Unit testing                                 |
+| Testing Library | 16.x    | Component testing                            |
+| Husky           | 9.x     | Git hooks                                    |
 
 ## Contributing
 
-We welcome feedback and ideas! This repository serves as our public roadmap and community hub.
+We welcome feedback and ideas. This repository serves as our public roadmap and community hub.
 
-- **Feature Requests:** [Open an issue](../../issues/new?template=feature_request.yml)
-- **Bug Reports:** [Report a bug](../../issues/new?template=bug_report.yml)
-- **Discussions:** Share your thoughts in [Issues](../../issues)
+- **Feature Requests:** [Open an issue](https://github.com/goast/goast/issues/new?labels=feature)
+- **Bug Reports:** [Report a bug](https://github.com/goast/goast/issues/new?labels=bug)
+- **Discussions:** [Share your thoughts in Issues](https://github.com/goast/goast/discussions)
 
----
+## Licence
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-*Note: This repository serves as a public roadmap and technology showcase. Internal security configurations, proprietary AI prompt engineering, and specific abuse-prevention mechanisms are abstracted.*
+This project is licensed under the MIT Licence — see the [LICENCE](LICENSE) file for details.
