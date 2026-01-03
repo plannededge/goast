@@ -94,10 +94,10 @@ jobs:
           # Normalised JSON is already in the file from the previous step
           echo '${{ steps.template.outputs.type }}' > /tmp/template_type.txt
 
-      - name: Call Gemini API
-        id: gemini
+      - name: Call OpenAI API
+        id: openai
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           # Read data from files
           ISSUE_TITLE=$(cat /tmp/issue_title.txt)
@@ -124,30 +124,24 @@ jobs:
           esac
 
           # Build the request payload
-          cat > /tmp/gemini_request.json << 'PAYLOAD_EOF'
+          cat > /tmp/openai_request.json << 'PAYLOAD_EOF'
           {
-            "systemInstruction": {
-              "role": "system",
-              "parts": [
-                {
-                  "text": ""
-                }
-              ]
-            },
-            "contents": [
+            "model": "gpt-4o",
+            "messages": [
+              {
+                "role": "system",
+                "content": ""
+              },
               {
                 "role": "user",
-                "parts": [
-                  {
-                    "text": ""
-                  }
-                ]
+                "content": ""
               }
             ],
-            "generationConfig": {
-              "responseMimeType": "application/json",
-              "responseSchema": {}
-            }
+            "response_format": {
+              "type": "json_schema",
+              "json_schema": {}
+            },
+            "temperature": 0.7
           }
           PAYLOAD_EOF
 
@@ -274,41 +268,42 @@ jobs:
           jq --arg system "$SYSTEM_PROMPT" \
             --arg user "$USER_PROMPT" \
             --slurpfile schema /tmp/response_schema.json \
-            '.systemInstruction.parts[0].text = $system
-            | .contents[0].parts[0].text = $user
-            | .generationConfig.responseSchema = $schema[0]' \
-            /tmp/gemini_request.json > /tmp/gemini_request_final.json
+            '.messages[0].content = $system
+            | .messages[1].content = $user
+            | .response_format.json_schema = $schema[0]' \
+            /tmp/openai_request.json > /tmp/openai_request_final.json
 
           # Make API request
-          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/gemini_response.json \
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/openai_response.json \
             -X POST \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}" \
+            "https://api.openai.com/v1/chat/completions" \
             -H "Content-Type: application/json" \
-            -d @/tmp/gemini_request_final.json)
+            -H "Authorization: Bearer ${OPENAI_API_KEY}" \
+            -d @/tmp/openai_request_final.json)
 
           echo "API Response Code: $HTTP_CODE"
 
           if [ "$HTTP_CODE" != "200" ]; then
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=API returned status $HTTP_CODE" >> $GITHUB_OUTPUT
-            cat /tmp/gemini_response.json
+            cat /tmp/openai_response.json
             exit 0
           fi
 
           # Extract the generated content
-          GENERATED=$(jq -r '.candidates[0].content.parts[0].text // empty' /tmp/gemini_response.json)
+          GENERATED=$(jq -r '.choices[0].message.content // empty' /tmp/openai_response.json)
 
           if [ -z "$GENERATED" ]; then
             echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Failed to extract response from Gemini API" >> $GITHUB_OUTPUT
-            cat /tmp/gemini_response.json
+            echo "error_message=Failed to extract response from OpenAI API" >> $GITHUB_OUTPUT
+            cat /tmp/openai_response.json
             exit 0
           fi
 
           # Validate it's valid JSON
           if ! echo "$GENERATED" | jq . > /dev/null 2>&1; then
             echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Gemini returned invalid JSON" >> $GITHUB_OUTPUT
+            echo "error_message=OpenAI returned invalid JSON" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -349,7 +344,7 @@ jobs:
           echo "success=true" >> $GITHUB_OUTPUT
 
       - name: Update issue on success
-        if: steps.gemini.outputs.success == 'true'
+        if: steps.openai.outputs.success == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -503,7 +498,7 @@ jobs:
           **Flags:** ${FLAGS}
 
           ---
-          *This issue was processed by Goast AI (Gemini 2.5) and is awaiting moderator approval.*
+          *This issue was processed by Goast AI (GPT-4o) and is awaiting moderator approval.*
           </details>
           EOF
 
@@ -525,7 +520,7 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --body "This issue has been processed by our AI assistant and is awaiting moderator review. A team member will review and approve it shortly."
 
       - name: Handle API failure
-        if: steps.gemini.outputs.error == 'true'
+        if: steps.openai.outputs.error == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -534,4 +529,4 @@ jobs:
           gh issue edit "$ISSUE_NUMBER" --add-label "pending-review"
 
           # Add comment explaining the situation
-          gh issue comment "$ISSUE_NUMBER" --body "Our AI assistant was unable to process this issue automatically. A moderator will review it manually. (Error: ${{ steps.gemini.outputs.error_message }})"
+          gh issue comment "$ISSUE_NUMBER" --body "Our AI assistant was unable to process this issue automatically. A moderator will review it manually. (Error: ${{ steps.openai.outputs.error_message }})"
