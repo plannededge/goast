@@ -282,9 +282,8 @@ jobs:
           # Make API request
           HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/gemini_response.json \
             -X POST \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
-            -H "x-goog-api-key: ${GEMINI_API_KEY}" \
             -d @/tmp/gemini_request_final.json)
 
           echo "API Response Code: $HTTP_CODE"
