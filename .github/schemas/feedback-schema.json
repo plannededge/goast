@@ -1,7 +1,10 @@
 {
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
+  "name": "feedback_issue_schema",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
     "issue_type": {
       "type": "string",
       "enum": ["feedback"],
@@ -106,4 +109,5 @@
     }
   },
   "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+  }
 }

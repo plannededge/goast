@@ -1,7 +1,10 @@
 {
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
+  "name": "bug_issue_schema",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
     "issue_type": {
       "type": "string",
       "enum": ["bug"],
@@ -126,4 +129,5 @@
     }
   },
   "required": ["issue_type", "title", "issue", "labels", "label_reasoning", "confidence", "flags"]
+  }
 }
