@@ -126,7 +126,7 @@ jobs:
           # Build the request payload
           cat > /tmp/openai_request.json << 'PAYLOAD_EOF'
           {
-            "model": "gpt-4o",
+            "model": "gpt-5-nano-2025-08-07",
             "messages": [
               {
                 "role": "system",
@@ -498,7 +498,7 @@ jobs:
           **Flags:** ${FLAGS}
 
           ---
-          *This issue was processed by Goast AI (GPT-4o) and is awaiting moderator approval.*
+          *This issue was processed by Goast AI (GPT-5 Nano) and is awaiting moderator approval.*
           </details>
           EOF
 
