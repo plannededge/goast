@@ -187,7 +187,10 @@ jobs:
           5. Tone: Professional yet approachable, neutral and objective, no marketing language or hype
 
           6. Title rules:
-             - The title must start with a verb such as Add, Fix, Implement, Improve, Enhance, Remove, Update
+             - Title format: "[Feature]: {verb} {description}" for features, "[Bug]: {verb} {description}" for bugs, "[Feedback]: {verb} {description}" for feedback
+             - The title MUST start with the type in brackets: [Feature], [Bug], or [Feedback]
+             - After the bracket, use a colon, then a space, then an approved verb
+             - Approved verbs: Add, Fix, Implement, Improve, Enhance, Remove, Update, Create, Delete, Change, Support, Allow, Prevent, Correct, Reduce, Increase, Enable, Disable, Simplify, Clarify, Align, Adjust, Refine, Expand, Restrict, Consolidate, Document, Investigate, Resolve, Restore, Stabilise, Optimise
              - Use sentence case: first word capitalised, the rest lower case unless proper nouns
              - Keep it short, specific, and meaningful as a changelog entry
              - Use plain UK English and avoid jargon where possible
