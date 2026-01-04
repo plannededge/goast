@@ -180,9 +180,17 @@ jobs:
              - Preserve error messages verbatim
              - Keep version numbers and technical specifications
 
-          4. Do not invent details:
-             - Only use information provided in the form data or issue body
-             - If a field is missing, use "Not provided" or an empty list as required by the schema
+          4. Rewrite and clarify the issue:
+             - Your primary job is to rewrite the issue content clearly and professionally
+             - Fix grammar, spelling, and punctuation throughout
+             - Clarify vague language while preserving the user's intent
+             - Expand brief inputs into complete, well-structured sentences
+             - Use the original issue body and form data as your source material
+             - Infer reasonable context from what the user has provided
+             - Only use "Not provided" when there is genuinely no content whatsoever to work with
+             - For bugs: describe what is actually broken and why it matters
+             - For features: explain the problem, the desired outcome, and the value
+             - For feedback: capture the essence of what the user is communicating
 
           5. Tone: Professional yet approachable, neutral and objective, no marketing language or hype
 
