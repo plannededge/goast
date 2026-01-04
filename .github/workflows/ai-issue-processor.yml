@@ -331,7 +331,7 @@ jobs:
           TITLE_SECOND_WORD=${TITLE_AFTER_VERB%% *}
           if [ -n "$TITLE_SECOND_WORD" ] && echo "$TITLE_SECOND_WORD" | grep -Eq '^[A-Z]'; then
             case "$TITLE_SECOND_WORD" in
-              Goast|AI|PWA|UI|UX|API|WebSocket|Prisma|PostgreSQL|Next.js|TypeScript)
+              Goast|AI|PWA|UI|UX|API|WebSocket|Prisma|PostgreSQL|Next.js|TypeScript|GDPR|EU|SSO|OAuth|JWT|SQL|CSS|HTML|JSON|XML|HTTP|HTTPS|DNS|URL|URI|REST|GraphQL)
                 ;;
               *)
                 echo "error=true" >> $GITHUB_OUTPUT
