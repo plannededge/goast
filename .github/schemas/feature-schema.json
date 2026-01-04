@@ -113,6 +113,7 @@
     },
     "confidence": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "overall": { "type": "number" },
         "labels": { "type": "number" },
